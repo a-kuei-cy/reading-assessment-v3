@@ -1,0 +1,777 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>閱讀素養數位評量 2.0</title>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Serif+TC:wght@400;700;900&family=Noto+Sans+TC:wght@300;400;500;700&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<style>
+:root{
+  --ink:#1a1a2e;--ink-soft:#3d3d5c;--ink-light:#6b7280;
+  --paper:#faf9f6;--paper-warm:#f5f0e8;
+  --accent:#4f46e5;--accent-soft:rgba(79,70,229,.08);
+  --green:#059669;--green-soft:rgba(5,150,105,.12);
+  --orange:#d97706;--orange-soft:rgba(217,119,6,.12);
+  --border:rgba(26,26,46,.1);
+  --shadow-md:0 8px 32px rgba(26,26,46,.10);
+  --shadow-sm:0 2px 8px rgba(26,26,46,.06);
+  --r:16px;--rs:10px;--tr:.2s cubic-bezier(.4,0,.2,1);
+}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+html{scroll-behavior:smooth;-webkit-text-size-adjust:100%}
+body{font-family:'Noto Sans TC',sans-serif;background:var(--paper);color:var(--ink);min-height:100vh;line-height:1.7}
+.bg{position:fixed;inset:0;z-index:0;background:radial-gradient(circle at 20% 20%,rgba(79,70,229,.04) 0%,transparent 50%),radial-gradient(circle at 80% 80%,rgba(217,119,6,.04) 0%,transparent 50%);pointer-events:none}
+
+/* ── Header ── */
+.hdr{position:sticky;top:0;z-index:100;background:rgba(250,249,246,.95);backdrop-filter:blur(12px);border-bottom:1px solid var(--border);padding:0 16px}
+.hdr-in{max-width:1100px;margin:0 auto;display:flex;align-items:center;justify-content:space-between;height:56px;gap:8px}
+.logo{display:flex;align-items:center;gap:10px;cursor:pointer;min-width:0;flex:1}
+.logo-icon{font-size:24px;flex-shrink:0}
+.logo-t{font-family:'Noto Serif TC',serif;font-weight:700;font-size:16px;line-height:1.2;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.logo-s{font-size:10px;color:var(--ink-light);letter-spacing:.04em;display:none}
+.hnav{display:flex;gap:6px;align-items:center;flex-shrink:0}
+.nl{padding:6px 12px;border-radius:999px;font-size:13px;color:var(--ink-soft);transition:var(--tr);font-weight:600;cursor:pointer;border:none;background:none;font-family:inherit;white-space:nowrap}
+.nl:hover{background:var(--accent-soft);color:var(--accent)}
+.nl.rank{background:var(--accent);color:#fff;padding:7px 14px}
+.nl.admin{background:var(--ink);color:#fff;padding:7px 14px}
+
+/* ── Layout ── */
+.main{position:relative;z-index:1;max-width:1100px;margin:0 auto;padding:20px 16px 80px}
+.page{display:none}
+.page.active{display:block;animation:fadeUp .35s ease}
+@keyframes fadeUp{from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:translateY(0)}}
+
+/* ── Card ── */
+.card{background:#fff;border-radius:var(--r);padding:28px 24px;box-shadow:var(--shadow-md);border:1px solid var(--border)}
+.card-center{max-width:540px;margin:0 auto;text-align:center}
+.badge{display:inline-block;padding:4px 14px;background:var(--accent-soft);color:var(--accent);border-radius:999px;font-size:11px;font-weight:600;letter-spacing:.05em;margin-bottom:16px}
+.card-title{font-family:'Noto Serif TC',serif;font-size:26px;font-weight:900;margin-bottom:10px;line-height:1.3}
+.card-desc{color:var(--ink-light);font-size:14px;margin-bottom:20px}
+.tags{display:flex;justify-content:center;gap:6px;flex-wrap:wrap;margin-bottom:24px}
+.tag{padding:4px 12px;border-radius:999px;font-size:12px;font-weight:500}
+.tag-b{background:rgba(79,70,229,.1);color:var(--accent)}
+.tag-g{background:var(--green-soft);color:var(--green)}
+.tag-o{background:var(--orange-soft);color:var(--orange)}
+
+/* ── Form ── */
+.fg{text-align:left;margin-bottom:14px}
+.fg label{display:block;font-size:13px;font-weight:600;color:var(--ink-soft);margin-bottom:5px}
+.inp{width:100%;padding:12px 14px;border:1.5px solid var(--border);border-radius:var(--rs);font-family:inherit;font-size:15px;color:var(--ink);background:var(--paper);transition:var(--tr);outline:none;-webkit-appearance:none;appearance:none}
+.inp:focus{border-color:var(--accent);box-shadow:0 0 0 3px rgba(79,70,229,.1);background:#fff}
+.inp-sm{width:auto;padding:7px 10px;font-size:13px}
+
+/* ── Buttons ── */
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:6px;padding:11px 22px;border-radius:999px;font-family:inherit;font-size:15px;font-weight:600;cursor:pointer;text-decoration:none;transition:var(--tr);border:none;outline:none;-webkit-tap-highlight-color:transparent}
+.btn-p{background:var(--accent);color:#fff;box-shadow:0 4px 16px rgba(79,70,229,.25)}
+.btn-p:active{transform:scale(.97)}
+.btn-s{background:var(--ink);color:#fff}
+.btn-o{background:transparent;color:var(--accent);border:2px solid var(--accent)}
+.btn-o:active{background:var(--accent-soft)}
+.btn-full{width:100%;padding:14px;font-size:16px;margin-top:10px}
+.btn-sub{width:100%;margin-top:20px;padding:14px;font-size:16px}
+
+/* ── Loading ── */
+.loading-box{text-align:center;padding:60px 24px}
+.spinner{width:44px;height:44px;border:4px solid var(--border);border-top-color:var(--accent);border-radius:50%;animation:spin .8s linear infinite;margin:0 auto 16px}
+@keyframes spin{to{transform:rotate(360deg)}}
+.loading-txt{color:var(--ink-light);font-size:15px}
+
+/* ── Quiz ── */
+.quiz-wrap{display:grid;grid-template-columns:280px 1fr;gap:20px;align-items:start}
+.pass-panel,.q-panel{background:#fff;border-radius:var(--r);padding:24px;box-shadow:var(--shadow-md);border:1px solid var(--border)}
+.pass-panel{position:sticky;top:72px;max-height:calc(100vh - 90px);overflow-y:auto}
+.panel-lbl{font-size:11px;font-weight:700;color:var(--ink-light);text-transform:uppercase;letter-spacing:.08em;margin-bottom:10px}
+.pass-meta{margin-top:12px;display:flex;gap:6px;flex-wrap:wrap}
+.mbadge{padding:3px 9px;border-radius:999px;font-size:11px;font-weight:600}
+.mb-acc{background:var(--accent-soft);color:var(--accent)}
+.mb-grn{background:var(--green-soft);color:var(--green)}
+.mb-org{background:var(--orange-soft);color:var(--orange)}
+
+/* ── Progress ── */
+.prog{margin-bottom:20px}
+.prog-lbl{font-size:12px;font-weight:600;color:var(--ink-light);margin-bottom:6px;display:flex;justify-content:space-between}
+.prog-bar{background:var(--paper-warm);border-radius:999px;height:8px;overflow:hidden}
+.prog-fill{height:100%;background:var(--accent);border-radius:999px;transition:width .4s ease;width:0}
+
+/* ── Question ── */
+.qb{margin-bottom:24px;padding-bottom:20px;border-bottom:1px dashed var(--border)}
+.qb:last-child{border-bottom:none;padding-bottom:0}
+.qt{font-weight:600;font-size:15px;margin-bottom:10px;line-height:1.65}
+.qt .qnum{display:inline-flex;align-items:center;justify-content:center;width:22px;height:22px;background:var(--accent);color:#fff;border-radius:50%;font-size:11px;margin-right:6px;flex-shrink:0;vertical-align:middle}
+.opts{display:grid;gap:8px}
+.opt{display:flex;align-items:center;gap:10px;padding:11px 14px;border-radius:var(--rs);border:1.5px solid var(--border);cursor:pointer;transition:var(--tr);user-select:none;-webkit-tap-highlight-color:transparent;min-height:44px}
+.opt:hover{border-color:rgba(79,70,229,.4);background:var(--accent-soft)}
+.opt.sel{border-color:var(--accent);background:var(--accent-soft)}
+.opt input{display:none}
+.opt-l{display:flex;align-items:center;justify-content:center;width:28px;height:28px;min-width:28px;border-radius:50%;background:var(--paper-warm);font-size:12px;font-weight:700;color:var(--ink-soft);transition:var(--tr);flex-shrink:0}
+.opt.sel .opt-l{background:var(--accent);color:#fff}
+.opt-t{font-size:14px;color:var(--ink-soft);line-height:1.55;flex:1}
+
+/* ── Result ── */
+.res-wrap{max-width:680px;margin:0 auto}
+.res-hdr{text-align:center;margin-bottom:28px}
+.res-emoji{font-size:56px;margin-bottom:12px}
+.res-title{font-family:'Noto Serif TC',serif;font-size:24px;font-weight:900;margin-bottom:6px}
+.res-desc{color:var(--ink-light);font-size:15px}
+.res-cards{display:grid;grid-template-columns:140px 1fr;gap:16px;margin-bottom:20px}
+.score-card{background:var(--accent);color:#fff;border-radius:var(--r);padding:24px 16px;text-align:center;box-shadow:0 8px 24px rgba(79,70,229,.3)}
+.score-n{font-family:'Noto Serif TC',serif;font-size:42px;font-weight:900;line-height:1}
+.score-l{font-size:12px;opacity:.8;margin-top:4px}
+.skill-card{background:#fff;border-radius:var(--r);padding:20px;box-shadow:var(--shadow-sm);border:1px solid var(--border);display:flex;flex-direction:column;justify-content:center;gap:12px}
+.si{display:flex;align-items:center;gap:8px}
+.si-n{font-size:12px;font-weight:600;color:var(--ink-soft);width:62px;flex-shrink:0}
+.si-bw{flex:1;height:8px;background:var(--paper-warm);border-radius:999px;overflow:hidden}
+.si-b{height:100%;border-radius:999px;width:0;transition:width .8s ease}
+.b-acc{background:var(--accent)}
+.b-grn{background:var(--green)}
+.b-org{background:var(--orange)}
+.si-v{font-size:12px;font-weight:700;width:32px;text-align:right;color:var(--ink-soft)}
+.chart-box{background:#fff;border-radius:var(--r);padding:20px;box-shadow:var(--shadow-sm);border:1px solid var(--border);display:flex;justify-content:center;margin-bottom:16px;overflow:hidden}
+.fb-tip{background:var(--orange-soft);border:1px solid rgba(217,119,6,.2);border-radius:var(--rs);padding:12px 16px;font-size:14px;color:var(--ink-soft);margin-bottom:16px}
+.res-acts{display:flex;gap:10px;justify-content:center;flex-wrap:wrap}
+.res-acts .btn{flex:1;min-width:120px;max-width:200px}
+
+/* ── Rank ── */
+.rank-wrap{max-width:760px;margin:0 auto}
+.rank-filter{display:flex;align-items:center;gap:10px;margin-bottom:20px;font-size:14px;font-weight:600;color:var(--ink-soft);flex-wrap:wrap}
+.rank-note{font-size:11px;color:var(--ink-light);font-weight:400}
+.podium{display:flex;align-items:flex-end;justify-content:center;gap:8px;margin-bottom:24px}
+.pod{display:flex;flex-direction:column;align-items:center;justify-content:flex-start;padding-top:14px;background:#fff;border-radius:var(--r) var(--r) 0 0;flex:1;max-width:160px;min-width:90px;box-shadow:var(--shadow-md);border:1px solid var(--border);border-bottom:none}
+.pod-m{font-size:28px;margin-bottom:4px}
+.pod-name{font-family:'Noto Serif TC',serif;font-size:13px;font-weight:700;text-align:center;padding:0 6px;word-break:break-all}
+.pod-cls{font-size:11px;color:var(--ink-light);margin-bottom:4px}
+.pod-s{font-size:18px;font-weight:900;color:var(--accent)}
+.pod-p{font-size:12px;color:var(--ink-light);padding-bottom:10px}
+.rank-card{background:#fff;border-radius:var(--r);padding:20px;box-shadow:var(--shadow-md);border:1px solid var(--border);margin-bottom:20px}
+.rank-card h3{font-size:14px;font-weight:700;margin-bottom:12px}
+.rrow{display:flex;align-items:center;gap:8px;padding:9px 0;border-bottom:1px solid var(--border);font-size:13px}
+.rrow:last-child{border-bottom:none}
+.rrow.top{background:linear-gradient(to right,var(--accent-soft),transparent);border-radius:var(--rs);padding:9px 8px}
+.r-num{width:26px;text-align:center;font-weight:700;font-size:14px;flex-shrink:0}
+.r-name{font-weight:600;min-width:0;flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.r-cls{color:var(--ink-light);font-size:11px;min-width:60px;flex-shrink:0}
+.r-bw{flex:2;height:6px;background:var(--paper-warm);border-radius:999px;overflow:hidden;min-width:40px}
+.r-b{height:100%;background:var(--accent);border-radius:999px}
+.r-score{font-weight:700;width:32px;text-align:right;font-size:12px;flex-shrink:0}
+.r-pct{font-size:12px;color:var(--accent);font-weight:700;width:32px;text-align:right;flex-shrink:0}
+.rank-back{margin-bottom:16px}
+.rank-cta{text-align:center;margin-top:4px}
+
+/* ── Footer ── */
+.ftr{position:relative;z-index:1;text-align:center;padding:20px 16px;font-size:11px;color:var(--ink-light);border-top:1px solid var(--border)}
+
+/* ════════════════════════════════
+   Responsive Breakpoints
+════════════════════════════════ */
+
+/* Tablet 768px */
+@media(min-width:769px){
+  .hdr{padding:0 24px}
+  .hdr-in{height:64px}
+  .logo-t{font-size:18px}
+  .logo-s{display:block}
+  .nl{padding:7px 16px;font-size:14px}
+  .main{padding:32px 24px 80px}
+  .card{padding:36px 32px}
+  .card-title{font-size:30px}
+  .quiz-wrap{grid-template-columns:260px 1fr}
+}
+
+/* Desktop 1024px */
+@media(min-width:1025px){
+  .quiz-wrap{grid-template-columns:300px 1fr;gap:24px}
+  .pass-panel{padding:28px}
+  .q-panel{padding:28px}
+}
+
+/* Mobile only overrides ≤768px */
+@media(max-width:768px){
+  .quiz-wrap{grid-template-columns:1fr}
+  .pass-panel{position:static;max-height:none;margin-bottom:16px}
+  .res-cards{grid-template-columns:1fr}
+  .score-card{display:flex;align-items:center;justify-content:center;gap:16px;padding:16px 20px;border-radius:var(--rs)}
+  .score-n{font-size:36px}
+  .chart-box canvas{width:100%!important;max-width:260px;height:auto!important}
+  .podium{gap:6px}
+  .pod{min-width:80px}
+  .rrow{gap:6px}
+  .r-cls{display:none}
+  .r-bw{min-width:30px}
+}
+
+/* Small mobile ≤480px */
+
+/* ── Passage (閱讀文章) ── */
+.quiz-wrap-passage{grid-template-columns:1fr 1fr}
+.passage-panel{background:#fff;border-radius:var(--r);padding:24px;box-shadow:var(--shadow-md);border:1px solid var(--border);position:sticky;top:72px;max-height:calc(100vh - 90px);overflow-y:auto}
+.passage-lbl{font-size:11px;font-weight:700;color:var(--ink-light);text-transform:uppercase;letter-spacing:.08em;margin-bottom:12px;display:flex;align-items:center;gap:6px}
+.passage-body{font-size:15px;line-height:2;color:var(--ink-soft);white-space:pre-wrap;word-break:break-word}
+.passage-divider{height:1px;background:var(--border);margin:16px 0}
+@media(max-width:768px){
+  .quiz-wrap-passage{grid-template-columns:1fr}
+  .passage-panel{position:static;max-height:none;margin-bottom:0}
+}
+@media(max-width:480px){
+  .passage-body{font-size:14px;line-height:1.9}
+}
+@media(max-width:480px){
+  .hdr-in{height:52px}
+  .logo-icon{font-size:22px}
+  .logo-t{font-size:14px}
+  .nl.rank{padding:6px 10px;font-size:12px}
+  .nl.admin{padding:6px 10px;font-size:12px}
+  .main{padding:16px 12px 60px}
+  .card{padding:20px 16px;border-radius:12px}
+  .card-title{font-size:22px}
+  .badge{font-size:10px}
+  .tags{gap:4px}
+  .tag{font-size:11px;padding:3px 10px}
+  .btn{padding:11px 18px;font-size:14px}
+  .btn-full,.btn-sub{font-size:15px;padding:13px}
+  .inp{font-size:16px}/* prevent iOS zoom */
+  .qb{margin-bottom:20px;padding-bottom:16px}
+  .qt{font-size:14px}
+  .opt{padding:10px 12px}
+  .opt-t{font-size:13px}
+  .res-emoji{font-size:44px}
+  .res-title{font-size:20px}
+  .res-acts .btn{font-size:14px;padding:11px 16px}
+  .rank-filter{gap:6px}
+  .rank-filter .inp-sm{font-size:13px;padding:6px 8px}
+  .pod-m{font-size:22px}
+  .pod-name{font-size:12px}
+  .pod-s{font-size:15px}
+  .rrow{font-size:12px}
+  .r-bw{display:none}
+  .rank-card{padding:16px}
+}
+</style>
+</head>
+<body>
+<div class="bg"></div>
+<header class="hdr">
+  <div class="hdr-in">
+    <div class="logo" onclick="goHome()">
+      <span class="logo-icon">📚</span>
+      <div>
+        <div class="logo-t">閱讀素養數位評量</div>
+        <div class="logo-s">Digital Reading Assessment 2.0</div>
+      </div>
+    </div>
+    <nav class="hnav">
+      <button class="nl rank" onclick="gotoRank()">🏆 排行榜</button>
+      <button class="nl admin" onclick="window.location.href='admin.html'">教師入口</button>
+    </nav>
+  </div>
+</header>
+
+<main class="main">
+
+  <!-- ══ 首頁 ══ -->
+  <div id="pageHome" class="page active">
+    <div class="card card-center">
+      <div class="badge">PIRLS · ePIRLS · PISA 對齊框架</div>
+      <h1 class="card-title">開始評量</h1>
+      <p class="card-desc">每次從題庫隨機抽取 10 題，選項順序也會隨機排列。</p>
+      <div class="tags">
+        <span class="tag tag-b">📥 擷取理解</span>
+        <span class="tag tag-g">🔗 推論統整</span>
+        <span class="tag tag-o">💡 評鑑反思</span>
+      </div>
+      <div class="fg"><label>班級</label><input id="className" class="inp" placeholder="例：五年三班"></div>
+      <div class="fg"><label>姓名</label><input id="stuName" class="inp" placeholder="請輸入姓名"></div>
+      <div class="fg">
+        <label>年級</label>
+        <select id="quizLevel" class="inp">
+          <option value="all">不限（全部隨機）</option>
+          <option value="中年級">中年級（3–4年級）</option>
+          <option value="高年級">高年級（5–6年級）</option>
+        </select>
+      </div>
+      <button onclick="startQuiz()" class="btn btn-p btn-full">開始測驗 →</button>
+      <div id="homeErr" style="color:#dc2626;font-size:13px;margin-top:12px;min-height:18px"></div>
+    </div>
+  </div>
+
+  <!-- ══ 載入中 ══ -->
+  <div id="pageLoading" class="page">
+    <div class="loading-box">
+      <div class="spinner"></div>
+      <div class="loading-txt">正在從題庫載入題目…</div>
+    </div>
+  </div>
+
+  <!-- ══ 作答 ══ -->
+  <div id="pageQuiz" class="page">
+    <!-- 有文章版：passage-panel + q-panel -->
+    <div id="quizWrapPassage" class="quiz-wrap quiz-wrap-passage" style="display:none">
+      <div class="passage-panel">
+        <div class="passage-lbl">📄 <span id="passageTitle">閱讀文章</span></div>
+        <div id="passageBody" class="passage-body"></div>
+        <div class="passage-divider"></div>
+        <div class="panel-lbl" style="margin-top:0">📋 測驗資訊</div>
+        <div id="quizInfo2" style="font-size:13px;color:var(--ink-soft);line-height:1.9"></div>
+        <div class="pass-meta" id="quizMeta2"></div>
+      </div>
+      <div class="q-panel">
+        <div class="prog">
+          <div class="prog-lbl"><span>答題進度</span><span id="progTxt2">0 / 10</span></div>
+          <div class="prog-bar"><div id="progFill2" class="prog-fill"></div></div>
+        </div>
+        <div id="qArea2"></div>
+        <button onclick="submitQuiz()" class="btn btn-p btn-sub">送出答案 ✓</button>
+      </div>
+    </div>
+    <!-- 純題目版：info panel + q-panel -->
+    <div id="quizWrapPlain" class="quiz-wrap" style="display:none">
+      <div class="pass-panel">
+        <div class="panel-lbl">📋 本次測驗資訊</div>
+        <div id="quizInfo" style="font-size:14px;color:var(--ink-soft);line-height:2"></div>
+        <div class="pass-meta" id="quizMeta"></div>
+      </div>
+      <div class="q-panel">
+        <div class="prog">
+          <div class="prog-lbl"><span>答題進度</span><span id="progTxt">0 / 10</span></div>
+          <div class="prog-bar"><div id="progFill" class="prog-fill"></div></div>
+        </div>
+        <div id="qArea"></div>
+        <button onclick="submitQuiz()" class="btn btn-p btn-sub">送出答案 ✓</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ══ 結果 ══ -->
+  <div id="pageResult" class="page">
+    <div class="res-wrap">
+      <div class="res-hdr">
+        <div id="resEmoji" class="res-emoji">🎉</div>
+        <h2 id="resTitle" class="res-title"></h2>
+        <p  id="resDesc"  class="res-desc"></p>
+      </div>
+      <div class="res-cards">
+        <div class="score-card">
+          <div id="totalScore" class="score-n">0/10</div>
+          <div class="score-l">本次得分</div>
+        </div>
+        <div class="skill-card">
+          <div class="si"><div class="si-n">📥 擷取</div><div class="si-bw"><div id="bar-r" class="si-b b-acc"></div></div><div id="val-r" class="si-v"></div></div>
+          <div class="si"><div class="si-n">🔗 推論</div><div class="si-bw"><div id="bar-i" class="si-b b-grn"></div></div><div id="val-i" class="si-v"></div></div>
+          <div class="si"><div class="si-n">💡 評鑑</div><div class="si-bw"><div id="bar-e" class="si-b b-org"></div></div><div id="val-e" class="si-v"></div></div>
+        </div>
+      </div>
+      <div class="chart-box"><canvas id="radarChart" width="280" height="280"></canvas></div>
+      <div id="fbArea"></div>
+      <div class="res-acts">
+        <button onclick="goHome()" class="btn btn-s">再測一次</button>
+        <button onclick="gotoRank()" class="btn btn-o">查看排行榜</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ══ 排行榜 ══ -->
+  <div id="pageRank" class="page">
+    <div class="rank-back"><button onclick="goHome()" class="btn btn-o">← 回測驗</button></div>
+    <div class="rank-wrap">
+      <div class="rank-filter">
+        <label>班級：</label>
+        <select id="rankCls" onchange="renderRank()" class="inp inp-sm"><option value="all">全部</option></select>
+        <span class="rank-note">資料每次測驗後更新</span>
+      </div>
+      <div id="podiumArea" class="podium"></div>
+      <div class="rank-card">
+        <h3>🏅 完整排行</h3>
+        <div id="rankList"></div>
+      </div>
+      <div class="rank-cta"><button onclick="goHome()" class="btn btn-p">我也要測驗 →</button></div>
+    </div>
+  </div>
+
+</main>
+
+<footer class="ftr">
+  閱讀素養數位評量 2.0 · 對齊 PIRLS / ePIRLS / PISA ·
+  <span onclick="window.location.href='admin.html'" style="cursor:pointer;color:var(--ink-light)">教師入口</span>
+</footer>
+
+<script>
+// ── 設定 ──────────────────────────────────────────────────────
+const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbw1a6flhMRxgv6dLt4nQeXRr1KlfMVa3ihGE26hzryzMGlPettBa98Jecefbs3onXP8/exec";   // ← 必填
+const RANK_KEY   = "readingRank_v2";
+const BANK_KEY   = "readingBank_v2";
+const BANK_TTL   = 10 * 60 * 1000;   // 題庫快取 10 分鐘
+
+// ── i18n 回饋 ─────────────────────────────────────────────────
+const FB = {
+  excellent:{emoji:"🌟",title:"卓越表現！",desc:"閱讀素養達到優秀水準，三項能力均衡發展。"},
+  good:     {emoji:"👍",title:"表現良好！",desc:"整體能力不錯，持續練習可以更進步。"},
+  average:  {emoji:"📖",title:"繼續加油！",desc:"多閱讀不同類型文章，能力會逐漸提升。"},
+  low:      {emoji:"💪",title:"勇敢嘗試！",desc:"每次練習都是成長，下次一定會更好！"}
+};
+
+// ── State ─────────────────────────────────────────────────────
+let currentQs = [], studentData = {}, radarChart, rankData = [];
+
+// ── 工具 ──────────────────────────────────────────────────────
+function shuffle(arr){ const a=[...arr]; for(let i=a.length-1;i>0;i--){const j=~~(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]];} return a; }
+function showPage(id){ document.querySelectorAll('.page').forEach(p=>p.classList.remove('active')); document.getElementById(id).classList.add('active'); window.scrollTo({top:0,behavior:'smooth'}); }
+function goHome(){ showPage('pageHome'); }
+function gotoRank(){ showPage('pageRank'); loadRank(); }
+
+// ── 題庫載入（含快取） ────────────────────────────────────────
+async function fetchBank() {
+  // 先嘗試快取
+  try {
+    const c = JSON.parse(localStorage.getItem(BANK_KEY)||'null');
+    if (c && Date.now() - c.ts < BANK_TTL && c.data.length > 0) return c.data;
+  } catch(e){}
+
+  if (SCRIPT_URL === "貼上你的Apps Script網址") return getDefaultBank();
+
+  try {
+    const res  = await fetch(SCRIPT_URL + "?action=bank");
+    const data = await res.json();
+    if (Array.isArray(data) && data.length > 0) {
+      localStorage.setItem(BANK_KEY, JSON.stringify({ts: Date.now(), data}));
+      return data;
+    }
+  } catch(e){}
+  return getDefaultBank();
+}
+
+// ── 開始測驗 ──────────────────────────────────────────────────
+async function startQuiz() {
+  const cn = document.getElementById('className').value.trim();
+  const nm = document.getElementById('stuName').value.trim();
+  const lv = document.getElementById('quizLevel').value;
+  const errEl = document.getElementById('homeErr');
+
+  if (!cn || !nm) { errEl.textContent = '請填寫班級和姓名！'; return; }
+  errEl.textContent = '';
+  studentData = { className: cn, name: nm };
+
+  showPage('pageLoading');
+
+  const bank = await fetchBank();
+  const pool = lv === 'all' ? bank : bank.filter(q => q.level === lv);
+
+  if (pool.length === 0) {
+    showPage('pageHome');
+    errEl.textContent = '目前該年級尚無題目，請告知教師新增。';
+    return;
+  }
+
+  // 隨機抽 10 題（不重複），並洗牌選項
+  const picked = shuffle(pool).slice(0, Math.min(10, pool.length));
+  currentQs = picked.map(item => {
+    const idxMap = shuffle([0,1,2,3]);
+    return {
+      ...item,
+      options: idxMap.map(i => item.options[i]),
+      answer:  idxMap.indexOf(item.answer)
+    };
+  });
+
+  renderQuiz();
+  showPage('pageQuiz');
+}
+
+function renderQuiz() {
+  const levels = [...new Set(currentQs.map(q=>q.level))].join('、');
+  const cats   = [...new Set(currentQs.map(q=>q.category))].join('、');
+  const infoHtml = `年級：${levels}<br>文體：${cats}<br>題數：${currentQs.length} 題`;
+  const metaHtml = [...new Set(currentQs.map(q=>q.skill))].map(s=>{
+    const cls = s==='擷取'?'mb-acc':s==='推論'?'mb-grn':'mb-org';
+    return `<span class="mbadge ${cls}">${s}</span>`;
+  }).join('');
+
+  // 判斷是否有文章（取第一題的 passage 代表整組）
+  const passage = currentQs[0]?.passage || '';
+  const hasPassage = passage.trim().length > 0;
+
+  // 切換顯示哪個 wrap
+  document.getElementById('quizWrapPassage').style.display = hasPassage ? '' : 'none';
+  document.getElementById('quizWrapPlain').style.display   = hasPassage ? 'none' : '';
+
+  if (hasPassage) {
+    // ── 有文章版 ──
+    const cat = currentQs[0]?.category || '閱讀文章';
+    document.getElementById('passageTitle').textContent = `${cat}`;
+    document.getElementById('passageBody').textContent  = passage;
+    document.getElementById('quizInfo2').innerHTML = infoHtml;
+    document.getElementById('quizMeta2').innerHTML = metaHtml;
+    document.getElementById('progFill2').style.width = '0%';
+    document.getElementById('progTxt2').textContent  = `0 / ${currentQs.length}`;
+    document.getElementById('qArea2').innerHTML = buildQHtml(currentQs);
+  } else {
+    // ── 純題目版 ──
+    document.getElementById('quizInfo').innerHTML = infoHtml;
+    document.getElementById('quizMeta').innerHTML = metaHtml;
+    document.getElementById('progFill').style.width = '0%';
+    document.getElementById('progTxt').textContent  = `0 / ${currentQs.length}`;
+    document.getElementById('qArea').innerHTML = buildQHtml(currentQs);
+  }
+}
+
+function buildQHtml(qs) {
+  let html = '';
+  qs.forEach((item,i) => {
+    html += `<div class="qb">
+      <div class="qt"><span class="qnum">${i+1}</span>${item.q}</div>
+      <div class="opts">`;
+    item.options.forEach((opt,j) => {
+      html += `<label class="opt" id="op${i}_${j}">
+        <input type="radio" name="q${i}" value="${j}" onchange="onOpt(${i})">
+        <span class="opt-l">${'ABCD'[j]}</span>
+        <span class="opt-t">${opt}</span>
+      </label>`;
+    });
+    html += `</div></div>`;
+  });
+  return html;
+}
+
+function onOpt(qi) {
+  currentQs[qi].options.forEach((_,j) => document.getElementById(`op${qi}_${j}`)?.classList.remove('sel'));
+  const s = document.querySelector(`input[name=q${qi}]:checked`);
+  if (s) document.getElementById(`op${qi}_${parseInt(s.value)}`)?.classList.add('sel');
+  let ans = 0;
+  currentQs.forEach((_,i) => { if(document.querySelector(`input[name=q${i}]:checked`)) ans++; });
+  const pct = (ans/currentQs.length*100) + '%';
+  const txt = `${ans} / ${currentQs.length}`;
+  // 更新兩個版面的進度條（只有一個會顯示）
+  ['progFill','progFill2'].forEach(id => { const el=document.getElementById(id); if(el) el.style.width=pct; });
+  ['progTxt','progTxt2'].forEach(id => { const el=document.getElementById(id); if(el) el.textContent=txt; });
+}
+
+// ── 送出 ──────────────────────────────────────────────────────
+function submitQuiz() {
+  const un = [];
+  currentQs.forEach((_,i) => { if(!document.querySelector(`input[name=q${i}]:checked`)) un.push(i+1); });
+  if (un.length) { alert(`請完成第 ${un.join('、')} 題再送出！`); return; }
+
+  let score = 0;
+  const ss = {'擷取':0,'推論':0,'評鑑':0}, st = {'擷取':0,'推論':0,'評鑑':0};
+  currentQs.forEach((item,i) => {
+    st[item.skill]++;
+    const v = document.querySelector(`input[name=q${i}]:checked`);
+    if (v && parseInt(v.value) === item.answer) { score++; ss[item.skill]++; }
+  });
+
+  const tot = currentQs.length, pct = score/tot;
+  const fb  = pct>=.8?FB.excellent:pct>=.6?FB.good:pct>=.4?FB.average:FB.low;
+  document.getElementById('resEmoji').textContent = fb.emoji;
+  document.getElementById('resTitle').textContent = fb.title;
+  document.getElementById('resDesc').textContent  = fb.desc;
+  document.getElementById('totalScore').textContent = `${score}/${tot}`;
+
+  [['擷取','r'],['推論','i'],['評鑑','e']].forEach(([k,id]) => {
+    const p = st[k]>0 ? ss[k]/st[k]*100 : 0;
+    document.getElementById(`bar-${id}`).style.width = p+'%';
+    document.getElementById(`val-${id}`).textContent = `${ss[k]}/${st[k]}`;
+  });
+
+  const weak = ['擷取','推論','評鑑'].filter(k=>st[k]>0&&ss[k]/st[k]<.5);
+  document.getElementById('fbArea').innerHTML = weak.length
+    ? `<div class="fb-tip">💡 建議加強：<strong>${weak.join('、')}</strong> 能力，可多閱讀不同類型文章練習。</div>` : '';
+
+  if (radarChart) radarChart.destroy();
+  radarChart = new Chart(document.getElementById('radarChart'), {
+    type:'radar',
+    data:{ labels:['擷取理解','推論統整','評鑑反思'],
+      datasets:[{ data:['擷取','推論','評鑑'].map(k=>st[k]>0?Math.round(ss[k]/st[k]*100):0),
+        backgroundColor:'rgba(99,102,241,.2)',borderColor:'rgba(99,102,241,.8)',
+        borderWidth:2,pointBackgroundColor:'rgba(99,102,241,1)',pointRadius:5 }]},
+    options:{ responsive:false, scales:{r:{min:0,max:100,ticks:{stepSize:25,font:{size:10}},pointLabels:{font:{size:12}}}},
+      plugins:{legend:{display:false}} }
+  });
+
+  // 儲存本機
+  const entry = { date:new Date().toISOString(), ...studentData, score, total:tot,
+    retrieve:ss['擷取'], infer:ss['推論'], evaluate:ss['評鑑'] };
+  try { const a=JSON.parse(localStorage.getItem(RANK_KEY)||'[]'); a.push(entry); localStorage.setItem(RANK_KEY,JSON.stringify(a)); } catch(e){}
+
+  // 送到 Apps Script
+  if (SCRIPT_URL !== "貼上你的Apps Script網址") {
+    fetch(SCRIPT_URL, { method:'POST', headers:{'Content-Type':'text/plain'},
+      body: JSON.stringify({action:'score', ...entry}) }).catch(()=>{});
+  }
+  showPage('pageResult');
+}
+
+// ── 排行榜 ────────────────────────────────────────────────────
+function loadRank() {
+  let local = [];
+  try { local = JSON.parse(localStorage.getItem(RANK_KEY)||'[]'); } catch(e){}
+  rankData = local;
+
+  if (SCRIPT_URL !== "貼上你的Apps Script網址") {
+    fetch(SCRIPT_URL + "?action=scores")
+      .then(r=>r.json())
+      .then(rows => {
+        if (Array.isArray(rows) && rows.length > 1) {
+          rankData = rows.slice(1).map(r=>({
+            date:r[0], className:r[1], name:r[2],
+            score:+r[3], total:+r[4]||10
+          }));
+        }
+        initRankFilters();
+      }).catch(() => initRankFilters());
+  } else {
+    if (!rankData.length) rankData = demoRank();
+    initRankFilters();
+  }
+}
+
+function demoRank() {
+  const cls=['五年一班','五年二班','五年三班','六年一班'];
+  const nms=['王小明','林雅婷','陳志豪','張美玲','李建宏','吳淑芬','劉家豪','許雅君','蔡宗翰','黃欣怡'];
+  return nms.map((n,i)=>({name:n,className:cls[i%4],score:Math.floor(Math.random()*4)+6,total:10,date:new Date(Date.now()-i*3600000*8).toISOString()}));
+}
+
+function initRankFilters() {
+  const classes=[...new Set(rankData.map(d=>d.className))].sort();
+  const sel=document.getElementById('rankCls');
+  sel.innerHTML='<option value="all">全部</option>';
+  classes.forEach(c=>sel.innerHTML+=`<option value="${c}">${c}</option>`);
+  renderRank();
+}
+
+function renderRank() {
+  const cls = document.getElementById('rankCls').value;
+  let f = cls==='all' ? [...rankData] : rankData.filter(d=>d.className===cls);
+  f.sort((a,b)=>b.score/b.total - a.score/a.total || new Date(a.date)-new Date(b.date));
+
+  const medals = ['🥇','🥈','🥉'], top3 = f.slice(0,3);
+  const order  = top3.length>=3 ? [top3[1],top3[0],top3[2]] : top3;
+  const heights= [140,185,115];
+
+  document.getElementById('podiumArea').innerHTML = top3.length
+    ? order.map((d,i)=>{ const ri=top3.indexOf(d); const h=top3.length>=3?heights[i]:160;
+        return `<div class="pod" style="height:${h}px"><div class="pod-m">${medals[ri]||'🎖️'}</div>
+        <div class="pod-name">${d.name}</div><div class="pod-cls">${d.className}</div>
+        <div class="pod-s">${d.score}/${d.total}</div><div class="pod-p">${Math.round(d.score/d.total*100)}%</div></div>`;
+      }).join('')
+    : '<p style="text-align:center;color:#999;padding:20px;width:100%">暫無資料</p>';
+
+  document.getElementById('rankList').innerHTML = f.length
+    ? f.map((d,i)=>{ const pct=Math.round(d.score/d.total*100);
+        return `<div class="rrow ${i<3?'top':''}"><span class="r-num">${i<3?medals[i]:i+1}</span>
+        <span class="r-name">${d.name}</span><span class="r-cls">${d.className}</span>
+        <div class="r-bw"><div class="r-b" style="width:${pct}%"></div></div>
+        <span class="r-score">${d.score}/${d.total}</span><span class="r-pct">${pct}%</span></div>`;
+      }).join('')
+    : '<p style="text-align:center;color:#999;padding:24px">暫無資料</p>';
+}
+
+// ── 內建預設題庫（離線備援） ────────────────────────────────
+function getDefaultBank() {
+  return [
+    {id:"q001",level:"中年級",category:"說明文",q:"學校推動的主要行動是什麼？",options:["節水行動","節能行動","回收活動","植樹計畫"],answer:1,skill:"擷取"},
+    {id:"q002",level:"中年級",category:"說明文",q:"學生為何自發組成巡查隊？",options:["老師指派任務","冷氣常在無人時運轉","參加比賽需要","家長委託要求"],answer:1,skill:"推論"},
+    {id:"q003",level:"中年級",category:"說明文",q:"一個月後學校用電量下降了多少？",options:["5%","10%","15%","20%"],answer:2,skill:"擷取"},
+    {id:"q004",level:"中年級",category:"說明文",q:"「節能小隊」每天進行什麼工作？",options:["關閉所有電燈","記錄各教室用電情況","修理冷氣設備","張貼環保海報"],answer:1,skill:"擷取"},
+    {id:"q005",level:"中年級",category:"說明文",q:"這篇文章最主要想傳達什麼道理？",options:["冷氣設備需要更新","學生的行動能改變現況","校長非常支持學生","學校電費太高"],answer:1,skill:"評鑑"},
+    {id:"q006",level:"中年級",category:"記敘文",q:"外婆的菜園裡種了哪些蔬菜？",options:["番茄、地瓜葉、九層塔","玉米、番茄、辣椒","地瓜葉、花椰菜、茄子","九層塔、空心菜、菠菜"],answer:0,skill:"擷取"},
+    {id:"q007",level:"中年級",category:"記敘文",q:"外婆每天清晨去菜園做什麼？",options:["施肥除蟲","除草翻土","澆水灌溉","採收蔬菜"],answer:2,skill:"擷取"},
+    {id:"q008",level:"中年級",category:"記敘文",q:"小明一開始對種菜的態度是？",options:["非常期待興奮","嫌泥土很髒","覺得很有趣","主動要求學習"],answer:1,skill:"推論"},
+    {id:"q009",level:"中年級",category:"記敘文",q:"外婆說的話最想表達什麼？",options:["買菜比種菜花錢","親自勞動才懂辛苦","外面賣的菜不健康","種菜只是興趣"],answer:1,skill:"評鑑"},
+    {id:"q010",level:"中年級",category:"記敘文",q:"第一批番茄最後被做成什麼？",options:["新鮮生菜沙拉","番茄炒雞蛋","義大利麵醬汁","新鮮果汁"],answer:2,skill:"擷取"},
+    {id:"q011",level:"中年級",category:"說明文",q:"台灣每年平均受幾個颱風侵襲？",options:["1至2個","3至5個","6至8個","10個以上"],answer:1,skill:"擷取"},
+    {id:"q012",level:"中年級",category:"說明文",q:"颱風主要集中在哪幾個月份？",options:["4至6月","7至9月","10至12月","1至3月"],answer:1,skill:"擷取"},
+    {id:"q013",level:"中年級",category:"說明文",q:"台灣水庫有多少進水量來自颱風降雨？",options:["超過50%","超過60%","超過70%","超過80%"],answer:2,skill:"擷取"},
+    {id:"q014",level:"中年級",category:"說明文",q:"氣象局發布颱風警報的目的是？",options:["記錄颱風路徑資料","讓民眾及時做好準備","計算各地降雨量","研究颱風成因"],answer:1,skill:"推論"},
+    {id:"q015",level:"中年級",category:"說明文",q:"本文對颱風的描述方式是？",options:["完全負面只有害處","完全正面全是好處","客觀呈現利弊兩面","認為應想辦法避免"],answer:2,skill:"評鑑"},
+    {id:"q016",level:"中年級",category:"記敘文",q:"小芸在溪邊發現了什麼生物？",options:["一隻小青蛙","一條石斑魚","一群蝌蚪","一隻烏龜"],answer:1,skill:"擷取"},
+    {id:"q017",level:"中年級",category:"記敘文",q:"晚上大家圍在哪裡分享心情？",options:["搭好的帳篷旁","野餐餐桌邊","燃燒的營火旁","清涼的溪邊"],answer:2,skill:"擷取"},
+    {id:"q018",level:"中年級",category:"記敘文",q:"小芸說「大自然比電視上更精采」說明了什麼？",options:["她討厭看電視","親身體驗比觀看更有感","溪邊景色很美麗","她想成為生態學家"],answer:1,skill:"評鑑"},
+    {id:"q019",level:"中年級",category:"記敘文",q:"回程時小芸心裡想了什麼？",options:["要把石斑魚帶回家","下次一定還要再來","叫爸媽幫她買帳篷","好好學習釣魚技術"],answer:1,skill:"擷取"},
+    {id:"q020",level:"中年級",category:"記敘文",q:"這篇文章最可能想說的道理是？",options:["介紹石斑魚的生態","說明各種露營裝備","走進大自然帶來豐富收穫","比較電視與戶外"],answer:2,skill:"評鑑"},
+    {id:"q021",level:"高年級",category:"數位文本",q:"網路霸凌的常見形式不包括哪一項？",options:["在網路散布謠言","分享讓人難堪的照片","主動贈送禮物","刻意排除特定對象"],answer:2,skill:"擷取"},
+    {id:"q022",level:"高年級",category:"數位文本",q:"受害者出現憂鬱的比例是一般人的幾倍？",options:["三倍","兩倍","四倍","五倍"],answer:1,skill:"擷取"},
+    {id:"q023",level:"高年級",category:"數位文本",q:"「截圖保存證據」最可能的目的是？",options:["方便分享給好友","作為日後舉報的依據","上傳到社群媒體","直接拿給老師看"],answer:1,skill:"推論"},
+    {id:"q024",level:"高年級",category:"數位文本",q:"文章認為旁觀者應該怎麼做？",options:["維持中立不表態","向霸凌者靠攏","不擴散並支持受害者","假裝完全沒看到"],answer:2,skill:"評鑑"},
+    {id:"q025",level:"高年級",category:"數位文本",q:"這篇電子報的文體屬於？",options:["生動有趣的故事","優美抒情的詩歌","說明性的電子報","個人感受的日記"],answer:2,skill:"評鑑"},
+    {id:"q026",level:"高年級",category:"科普文章",q:"珊瑚礁孕育了多少比例的海洋生物？",options:["超過三分之一","超過四分之一","超過二分之一","超過五分之一"],answer:1,skill:"擷取"},
+    {id:"q027",level:"高年級",category:"科普文章",q:"「珊瑚白化」的主要原因是？",options:["嚴重的海洋污染","海水溫度升高使共生藻離開","海底火山噴發","人類過度捕撈"],answer:1,skill:"擷取"},
+    {id:"q028",level:"高年級",category:"科普文章",q:"澳洲大堡礁近30年流失了多少珊瑚？",options:["約30%","約50%","約70%","接近99%"],answer:1,skill:"擷取"},
+    {id:"q029",level:"高年級",category:"科普文章",q:"氣溫升1.5°C和2°C，珊瑚消失比例差異為何？",options:["兩者沒有差別","差別在是否超過50%","從70-90%跳到超過99%","僅差約一年"],answer:2,skill:"推論"},
+    {id:"q030",level:"高年級",category:"科普文章",q:"作者撰寫本文最可能的目的是？",options:["介紹珊瑚礁的魚種","描述海底世界之美","警示氣候變遷危害海洋","推廣海底觀光潛水"],answer:2,skill:"評鑑"},
+    {id:"q031",level:"高年級",category:"議論文",q:"文中支持手機進校的理由不包括哪項？",options:["可即時查詢資料","方便與家長聯繫","有助增加社交","能記錄學習重點"],answer:2,skill:"推論"},
+    {id:"q032",level:"高年級",category:"議論文",q:"芬蘭從哪一年開始禁止手機進入課堂？",options:["2022年","2023年","2024年","2025年"],answer:2,skill:"擷取"},
+    {id:"q033",level:"高年級",category:"議論文",q:"法國針對中小學的手機政策是？",options:["只允許高中生攜帶","在全國中小學全面禁用","每天最多限用一小時","下課後才可使用"],answer:1,skill:"擷取"},
+    {id:"q034",level:"高年級",category:"議論文",q:"「上課交機、下課歸還」代表哪種立場？",options:["完全支持手機進校","完全反對手機進校","兩者之間的折衷","立場不明難判斷"],answer:2,skill:"推論"},
+    {id:"q035",level:"高年級",category:"議論文",q:"作者的立場最接近哪一種？",options:["強烈支持手機進校","強烈反對手機進校","客觀呈現多方觀點","批評芬蘭政策"],answer:2,skill:"評鑑"},
+    {id:"q036",level:"高年級",category:"科普文章",q:"塑膠微粒的定義直徑標準是多少？",options:["小於1毫米","小於5毫米","小於10毫米","小於50毫米"],answer:1,skill:"擷取"},
+    {id:"q037",level:"高年級",category:"科普文章",q:"研究在哪些地方發現了塑膠微粒？",options:["僅在海洋表面","深海、北極冰層及人類血液","只出現在食物中","僅存在工廠廢水"],answer:1,skill:"擷取"},
+    {id:"q038",level:"高年級",category:"科普文章",q:"目前全球每年生產的塑膠有多少被回收？",options:["不到10%","約30%","超過50%","約70%"],answer:0,skill:"推論"},
+    {id:"q039",level:"高年級",category:"科普文章",q:"長期攝入塑膠微粒可能造成什麼影響？",options:["只影響消化功能","影響內分泌並引發發炎","只影響呼吸系統","目前無任何影響"],answer:1,skill:"推論"},
+    {id:"q040",level:"高年級",category:"科普文章",q:"科學家的建議最符合哪個核心理念？",options:["持續推動經濟發展","減少污染與追求永續","擴大增加塑膠生產","專注研究海洋生態"],answer:1,skill:"評鑑"},
+    // ══ 新增多元題型 20 題 ══
+    {id:"q041",level:"中年級",category:"記敘文",q:"從小傑主動分享午餐這件事，可以看出他是個什麼樣的人？",options:["很貪吃的人","很喜歡說話的人","很樂於助人的人","很愛管閒事的人"],answer:2,skill:"推論"},
+    {id:"q042",level:"中年級",category:"說明文",q:"依據三月份行事曆，小華最晚要在哪一天前報名母親節卡片比賽？",options:["3/12","3/20","3/25","3/5"],answer:2,skill:"擷取"},
+    {id:"q043",level:"中年級",category:"說明文",q:"學校通知下週一要自備午餐，原因是什麼？",options:["廚師要休假","學校要辦活動","沒有電可以煮飯","營養午餐不好吃"],answer:2,skill:"推論"},
+    {id:"q044",level:"中年級",category:"記敘文",q:"小芳和美美兩個人都被老師登記名字，最可能的原因是什麼？",options:["沒寫功課","上課說話","遲到","沒帶課本"],answer:1,skill:"推論"},
+    {id:"q045",level:"中年級",category:"記敘文",q:"烏鴉把石子丟進瓶子讓水位上升，這個故事主要告訴我們什麼道理？",options:["烏鴉很喜歡玩石頭","遇到困難要動腦筋想辦法","烏鴉不應該喝瓶子裡的水","石頭可以拿來丟"],answer:1,skill:"評鑑"},
+    {id:"q046",level:"中年級",category:"說明文",q:"依據調查，喜歡動態活動（打球、玩電腦）的同學共有幾人？",options:["10人","15人","19人","20人"],answer:2,skill:"擷取"},
+    {id:"q047",level:"中年級",category:"記敘文",q:"從觀察日記可以知道，植物生長最需要什麼？",options:["只需要陽光","只需要土壤","需要定期澆水","不需要照顧"],answer:2,skill:"推論"},
+    {id:"q048",level:"中年級",category:"記敘文",q:"哥哥說「如果你把漫畫書還給我，我就借你貼紙簿」，這句話的意思是？",options:["妹妹可以不用還漫畫書","哥哥不想要貼紙簿","妹妹要先還書才能得到貼紙簿","哥哥要把漫畫書送給妹妹"],answer:2,skill:"推論"},
+    {id:"q049",level:"中年級",category:"說明文",q:"公園牌子寫「草皮維護中，請勿踐踏」，這個牌子要告訴我們什麼？",options:["可以在草地上玩球","草地正在整理，暫時不能踩","草地已經壞掉了","草地上有很多蟲"],answer:1,skill:"擷取"},
+    {id:"q050",level:"中年級",category:"記敘文",q:"這篇運動會報導主要是在講什麼？",options:["哪一班跑最後一名","運動會有哪些比賽","六年乙班逆轉勝的故事","大隊接力怎麼跑"],answer:2,skill:"評鑑"},
+    {id:"q051",level:"高年級",category:"數位文本",q:"這則關於塑膠杯的新聞主要想傳達什麼訊息？",options:["塑膠杯很便宜","臺灣人很愛喝飲料","一次性塑膠杯使用量太大，應設法減少","環保團體不喜歡喝飲料"],answer:2,skill:"評鑑"},
+    {id:"q052",level:"高年級",category:"說明文",q:"小華想搭07:30之後從台北出發且最早到達桃園的車次，應該搭哪一班？",options:["區間車1120次","自強號108次","區間車1122次","三班到達時間一樣"],answer:1,skill:"擷取"},
+    {id:"q053",level:"高年級",category:"記敘文",q:"小甄說「就差一點點就可以90分了」，可以推斷她的心情是？",options:["非常滿意，因為及格了","完全不介意分數","有點遺憾，覺得可以更好","覺得題目太難了"],answer:2,skill:"推論"},
+    {id:"q054",level:"高年級",category:"記敘文",q:"岳飛的母親在他背上刺「精忠報國」四個字，主要目的是什麼？",options:["讓他看起來很厲害","提醒他要永遠忠於國家","讓他不會忘記回家","因為當時流行刺青"],answer:1,skill:"推論"},
+    {id:"q055",level:"高年級",category:"議論文",q:"文具店廣告最主要的目的是什麼？",options:["告訴大家環保的重要","介紹筆記本的種類","鼓勵大家多買文具","慶祝教師節"],answer:2,skill:"評鑑"},
+    {id:"q056",level:"高年級",category:"數位文本",q:"收到「恭喜抽中iPhone，點連結領獎」的訊息，小明應該怎麼做最恰當？",options:["趕快點連結填資料","轉發給朋友一起去領","懷疑是詐騙，不要點連結","回訊息問對方是不是真的"],answer:2,skill:"評鑑"},
+    {id:"q057",level:"高年級",category:"科普文章",q:"根據短文，下列關於南北極的敘述哪一個是正確的？",options:["北極和南極都是陸地","北極熊和企鵝可以一起生活","北極是被冰層覆蓋的海洋","南極比北極溫暖"],answer:2,skill:"擷取"},
+    {id:"q058",level:"高年級",category:"科普文章",q:"鹽加到一定程度就不再溶解，最合理的原因是？",options:["因為水變髒了","因為水已經無法再溶解更多鹽","因為鹽壞掉了","因為攪拌不夠用力"],answer:1,skill:"推論"},
+    {id:"q059",level:"高年級",category:"記敘文",q:"阿公告訴孫子要珍惜現在的讀書環境，他說這段話的主要心情是什麼？",options:["抱怨小時候很辛苦","希望我們不要讀書","提醒我們要珍惜現在","懷念以前的煤油燈"],answer:2,skill:"推論"},
+    {id:"q060",level:"高年級",category:"說明文",q:"小美買了3本書、2件玩具和5件文具，總共花多少錢？可以抽獎嗎？",options:["140元，可以抽獎","160元，可以抽獎","170元，不可以抽獎","180元，不可以抽獎"],answer:2,skill:"擷取"},
+    // ══ 中年級新增 20 題（q061–q080）══
+    {id:"q061",level:"中年級",category:"記敘文",q:"小玲把橡皮擦借給忘記帶的同學，說「明天還我就好了」。從這個行為可以看出小玲是個什麼樣的人？",options:["很粗心的人","很大方體貼的人","很愛借東西的人","很喜歡管別人的人"],answer:1,skill:"推論"},
+    {id:"q062",level:"中年級",category:"記敘文",q:"媽媽留紙條：「我去買菜，鍋裡有熱湯，記得關火後再喝，小心燙！」小志看到紙條後，應該先做什麼？",options:["先喝湯","先關火再喝湯","等媽媽回來","把湯放到冰箱"],answer:1,skill:"擷取"},
+    {id:"q063",level:"中年級",category:"說明文",q:"公告說週三下午因消防演習第七節提前結束，請同學當天自行回家，不要在校園逗留。這個公告最主要要告訴同學什麼？",options:["消防演習很危險","週三第七節提前放學要自行回家","每天都要消防演習","不可以在學校"],answer:1,skill:"擷取"},
+    {id:"q064",level:"中年級",category:"記敘文",q:"小宏說：「我考試前一直複習，結果還是考不好，真的很努力了。」從這句話可以推斷小宏的心情是？",options:["非常開心","有點驕傲","感到沮喪又不甘心","完全不在乎"],answer:2,skill:"推論"},
+    {id:"q065",level:"中年級",category:"記敘文",q:"農夫說：「只有耕耘，才會有收穫。」這句話的道理是？",options:["農夫很喜歡種田","只要努力付出就會有成果","種田是最輕鬆的工作","收穫不需要努力"],answer:1,skill:"評鑑"},
+    {id:"q066",level:"中年級",category:"說明文",q:"圖書角統計：故事書15本、科學書8本、漫畫書12本、工具書5本。故事書和漫畫書合計共幾本？",options:["20本","23本","27本","30本"],answer:2,skill:"擷取"},
+    {id:"q067",level:"中年級",category:"說明文",q:"本週課表：週一數學、週二國語、週三自然、週四社會、週五體育。小明最害怕自然，他在哪天要特別複習？",options:["週一","週二","週三","週四"],answer:2,skill:"擷取"},
+    {id:"q068",level:"中年級",category:"說明文",q:"點心攤：果凍10元、布丁15元、仙草20元、粉圓飲料25元。小美有50元，買了兩杯粉圓飲料後還剩多少錢？",options:["0元","5元","10元","15元"],answer:0,skill:"擷取"},
+    {id:"q069",level:"中年級",category:"科普文章",q:"日記寫：「早上灰雲，後來下雨，下午雨停，傍晚出現彩虹。」彩虹出現在什麼時候？",options:["早上灰雲時","下雨的時候","雨停後的傍晚","半夜"],answer:2,skill:"擷取"},
+    {id:"q070",level:"中年級",category:"科普文章",q:"蠶寶寶成長順序：卵→幼蟲→蛹→蛾。小華的蠶寶寶現在正在結繭，牠處於哪個階段？",options:["卵","幼蟲","蛹","蛾"],answer:2,skill:"推論"},
+    {id:"q071",level:"中年級",category:"記敘文",q:"阿姨問：「吃飯前有沒有洗手？」小真說用肥皂洗了很久，阿姨點頭說「這樣才對」。阿姨強調洗手的原因最可能是？",options:["洗手可以讓手變白","洗手能去除髒污和細菌","洗手是禮貌","洗手讓飯更好吃"],answer:1,skill:"推論"},
+    {id:"q072",level:"中年級",category:"記敘文",q:"媽媽問書包為什麼這麼重，小杰說明天要帶美勞材料和體育服。從對話可推斷明天有哪些課？",options:["數學和國語","美勞和體育","自然和社會","音樂和英語"],answer:1,skill:"推論"},
+    {id:"q073",level:"中年級",category:"說明文",q:"捷運車廂貼「博愛座」標示，旁邊畫了老人、孕婦、受傷者和抱嬰兒的人。這個標示主要要提醒乘客做什麼？",options:["這些座位請讓給有需要的人","任何人都可以坐","這個座位比較舒服","這些人不能搭捷運"],answer:0,skill:"擷取"},
+    {id:"q074",level:"中年級",category:"說明文",q:"藥袋說明：「每次飯後30分鐘服用，一天三次，一次一顆。」小明早餐後30分鐘吃了一顆藥，今天還需要再吃幾顆？",options:["0顆","1顆","2顆","3顆"],answer:2,skill:"擷取"},
+    {id:"q075",level:"中年級",category:"記敘文",q:"小鹿說：「我的腿又細又長跑得快，但角太大在樹林裡總被卡住。」這個故事要告訴我們什麼道理？",options:["腿長比角漂亮","每件事物都有優點也有缺點","角越大越好","樹林很危險"],answer:1,skill:"評鑑"},
+    {id:"q076",level:"中年級",category:"記敘文",q:"班刊寫這學期班級參加科學展、合唱比賽和運動會，雖然不一定得名，但過程中學到很多，也更團結了。文章最主要想說什麼？",options:["得名才是最重要的","參與活動的過程讓大家成長和團結","科學展最好玩","合唱比賽最難準備"],answer:1,skill:"評鑑"},
+    {id:"q077",level:"中年級",category:"記敘文",q:"老師說：「上課要專心，不懂要發問，回家要複習，這三件事做到了，學習就會進步。」老師認為學習進步的方法共有幾個？",options:["一個","兩個","三個","四個"],answer:2,skill:"擷取"},
+    {id:"q078",level:"中年級",category:"記敘文",q:"小明撿到一個錢包，裡面有500元和一張學生證。他應該怎麼做最正確？",options:["把錢留下把錢包丟掉","自己保管錢包","拿去警察局或交給老師","問同學要不要"],answer:2,skill:"評鑑"},
+    {id:"q079",level:"中年級",category:"說明文",q:"圖書館公告：「館內不可飲食，手機靜音，書籍借閱兩週。」小真在館內想喝水，她應該怎麼做？",options:["在館內喝水","走出館外再喝","把水藏在書包裡喝","問館員可不可以喝"],answer:1,skill:"評鑑"},
+    {id:"q080",level:"中年級",category:"記敘文",q:"小傑作業簿不見了，先回想今天帶了什麼，再一格一格檢查書包，最後在課本夾層裡找到了。遇到問題應該怎麼辦？",options:["直接放棄","大聲哭鬧","冷靜有條理地尋找解決方法","等別人幫忙"],answer:2,skill:"評鑑"},
+    // ══ 高年級新增 20 題（q081–q100）══
+    {id:"q081",level:"高年級",category:"議論文",q:"文章指出臺灣國中生每天使用手機超過4小時，六成用於娛樂，學者認為過度使用影響視力和社交能力。這段文字的立場是？",options:["支持學生多用手機","對手機使用過多表示憂心","認為手機娛樂功能很重要","沒有明確立場"],answer:1,skill:"評鑑"},
+    {id:"q082",level:"高年級",category:"議論文",q:"甲說學校應該多種樹可以遮陽又美觀，乙說種樹維護費高不如裝遮陽棚。甲乙兩人的主要爭議點是什麼？",options:["學校需不需要遮陽","種樹好還是裝遮陽棚好","費用高不高","樹好不好看"],answer:1,skill:"推論"},
+    {id:"q083",level:"高年級",category:"說明文",q:"火車時刻：莒光號10:00→11:40台中；自強號10:20→11:20台中；區間快10:30→12:10台中。需最晚12:00到台中，最晚可搭哪班？",options:["莒光號","自強號","區間快","三班都趕不上"],answer:1,skill:"擷取"},
+    {id:"q084",level:"高年級",category:"說明文",q:"五年各班人數：甲班32人、乙班30人、丙班33人、丁班31人。全年級平均每班人數是多少？",options:["31人","31.5人","32人","32.5人"],answer:1,skill:"擷取"},
+    {id:"q085",level:"高年級",category:"記敘文",q:"阿志說比賽前緊張到睡不著，上場後反而冷靜，打完覺得發揮得不錯。從這段描述可以推論阿志是個什麼樣的人？",options:["容易放棄的人","面對壓力能調適並表現的人","對比賽不在乎的人","喜歡炫耀的人"],answer:1,skill:"推論"},
+    {id:"q086",level:"高年級",category:"記敘文",q:"小雯日記寫媽媽沒來接她，嘴上說沒關係，但心裡還是有點難過。這段話說明小雯的真實感受是？",options:["她很理解媽媽","她表面說沒關係但其實很失落","她很生氣媽媽","她假裝開心不讓媽媽擔心"],answer:1,skill:"推論"},
+    {id:"q087",level:"高年級",category:"記敘文",q:"課文說鄭成功從荷蘭人手中收復臺灣，後人尊稱他為「開台聖王」。鄭成功被尊稱的原因是？",options:["他是第一個來台灣的人","他幫助台灣脫離荷蘭統治","他建造了很多廟宇","他發現了台灣"],answer:1,skill:"擷取"},
+    {id:"q088",level:"高年級",category:"記敘文",q:"文章提到端午節吃粽子、賽龍舟，相傳是為了紀念投江的愛國詩人屈原。這說明端午節習俗的起源與什麼有關？",options:["慶祝豐收","紀念屈原投江","驅趕鬼怪","感謝龍神"],answer:1,skill:"擷取"},
+    {id:"q089",level:"高年級",category:"數位文本",q:"飲料廣告說：「喝了我們的果汁，你也可以像這位運動員一樣強壯！」這則廣告使用什麼方式說服消費者？",options:["提供科學數據","用名人或理想形象吸引消費者","說明成分","比較其他品牌"],answer:1,skill:"評鑑"},
+    {id:"q090",level:"高年級",category:"數位文本",q:"新聞標題：「研究顯示：每天喝咖啡可降低失智風險！」閱讀時最應該進一步確認什麼？",options:["咖啡的價格","這項研究的樣本數和方法是否可信","咖啡在哪裡買","研究人員的姓名"],answer:1,skill:"評鑑"},
+    {id:"q091",level:"高年級",category:"數位文本",q:"網路文章說：「吃某種食物可以在三天內減重十公斤！」小彤應該如何判斷這則資訊？",options:["立刻相信並分享","查閱多個可靠來源確認真偽","把文章截圖給朋友","只要聽起來有道理就相信"],answer:1,skill:"評鑑"},
+    {id:"q092",level:"高年級",category:"數位文本",q:"社群媒體出現沒有標明來源的訊息：「台灣即將發生大地震！請趕快轉發！」最適當的處理方式是？",options:["立刻轉發給所有聯絡人","查詢中央氣象署等官方平台確認","假裝沒看到","請朋友幫忙查"],answer:1,skill:"評鑑"},
+    {id:"q093",level:"高年級",category:"科普文章",q:"科學家發現蜜蜂透過「8字形舞蹈」告訴同伴花蜜的方向和距離。這個發現說明了什麼？",options:["蜜蜂喜歡跳舞","蜜蜂有自己的溝通方式","蜜蜂的舞蹈很美","花蜜距離越近舞蹈越複雜"],answer:1,skill:"推論"},
+    {id:"q094",level:"高年級",category:"科普文章",q:"地球71%是海洋，海洋中97%的水是鹹水，人類無法直接飲用。人類可直接飲用的水大約佔地球水的多少？",options:["97%","71%","很少，不到3%","29%"],answer:2,skill:"推論"},
+    {id:"q095",level:"高年級",category:"記敘文",q:"老師說期末報告評分：內容50%、表達30%、創意20%。小明內容豐富但表達普通、創意不足，他最可能在哪個項目得最高分？",options:["表達方式","創意","內容","三個一樣高"],answer:2,skill:"推論"},
+    {id:"q096",level:"高年級",category:"記敘文",q:"颱風來臨前，便利商店的泡麵、礦泉水和蠟燭第一個被搶購一空。從這個現象可以推論民眾最擔心什麼？",options:["食物不好吃","停電停水、無法外出購物","便利商店太貴","泡麵賣完就沒得吃"],answer:1,skill:"推論"},
+    {id:"q097",level:"高年級",category:"數位文本",q:"小芸在班級群組看到有人分享同學的尷尬照，下面很多人在笑。她應該怎麼做最恰當？",options:["跟著留言嘲笑","私下告訴照片中的同學","轉傳給其他朋友","不理會繼續滑手機"],answer:1,skill:"評鑑"},
+    {id:"q098",level:"高年級",category:"記敘文",q:"校長致詞：「六年學習不只是知識累積，更重要是學會面對困難、與人合作、為自己負責，這些才是帶得走的能力。」校長認為學校教育最重要的目標是？",options:["考試高分","記住所有知識","培養解決問題與負責任的能力","獲得很多獎狀"],answer:2,skill:"評鑑"},
+    {id:"q099",level:"高年級",category:"說明文",q:"活動規定：須年滿10歲、身高120公分以上，且當天須有家長陪同。小明11歲、身高125公分，但當天只有哥哥陪同。小明符合參加資格嗎？",options:["符合，三個條件都達到","不符合，因為沒有家長陪同","符合，哥哥就是家長","不符合，因為年齡不夠"],answer:1,skill:"擷取"},
+    {id:"q100",level:"高年級",category:"說明文",q:"方案A年票3600元無限次；方案B單次票每張100元。小美預計一年去30次，選哪個方案比較划算？",options:["方案A，無限次所以比較值","方案B，30次×100元＝3000元比3600元便宜","兩個一樣划算","方案A，因為有折扣"],answer:1,skill:"推論"}
+  ];
+}
+</script>
+</body>
+</html>
